@@ -11,12 +11,13 @@ bool isEmpty(Queue* q){
 }
 
 void enqueue(Queue* q, int process_index){
-    if(q->count < MAX_PROCESSES){
-        q->rear = (q->rear + 1) % MAX_PROCESSES;
-        q->items[q->rear] = process_index;
-        q->count++;
+    if(q->count >= MAX_PROCESSES){
+        printf("Queue is full");
+        return;
     }
-    printf("Queue is full");
+    q->rear = (q->rear + 1) % MAX_PROCESSES;
+    q->items[q->rear] = process_index;
+    q->count++;
 }
 
 

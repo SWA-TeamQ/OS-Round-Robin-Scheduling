@@ -81,14 +81,31 @@ void calculate_rrs(struct Process p[], int n, int quantum) {
 }
 
 int main() {
-    int n = 3;
-    int quantum = 2;
-    struct Process p[] = {
-        {1, 0, 5, 5, 0, 0, 0, false},
-        {2, 1, 3, 3, 0, 0, 0, false},
-        {3, 2, 8, 8, 0, 0, 0, false}
-    };
+struct Process p[] = {
+    // Cluster 1: IDs 1-5 will finish around t=28
+    {1, 0, 8, 8, 0, 0, 0, false},   {2, 1, 4, 4, 0, 0, 0, false},
+    {3, 2, 9, 9, 0, 0, 0, false},   {4, 3, 5, 5, 0, 0, 0, false},
+    {5, 4, 2, 2, 0, 0, 0, false},   
 
+    // EDGE CASE: Huge gap. Previous work ends at t=28.
+    {6, 50, 3, 3, 0, 0, 0, false},  // Should have Response 0
+    {7, 51, 1, 1, 0, 0, 0, false},  
+    {8, 52, 10, 10, 0, 0, 0, false},
+
+    // EDGE CASE: Another gap. Previous batch (6-8) finishes at t=50+3+1+10 = 64.
+    {9, 80, 4, 4, 0, 0, 0, false},   // Should have Response 0
+    {10, 81, 6, 6, 0, 0, 0, false},  
+
+    // EDGE CASE: Arrival exactly when previous finishes.
+    {11, 90, 5, 5, 0, 0, 0, false}, 
+
+    // EDGE CASE: Triple tie at t=120.
+    {12, 120, 2, 2, 0, 0, 0, false}, // Should have Response 0
+    {13, 120, 7, 7, 0, 0, 0, false}, 
+    {14, 120, 3, 3, 0, 0, 0, false}
+};
+int n = 14; 
+int quantum = 3;
     
 
     calculate_rrs(p, n, quantum);
