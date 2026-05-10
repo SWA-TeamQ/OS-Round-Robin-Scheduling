@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include "queue.h"
+
+#define min(a,b) (((a) <= (b)) ? (a) : (b))
 
 struct Process {
     int id;
@@ -12,38 +16,66 @@ struct Process {
     bool started;
 };
 
+// comparator for the qsort function to sort processes based on their arrival time
+int compareArrival(const void* a, const void* b){
+    struct Process* p1 = (struct Process*) a;
+    struct Process* p2 = (struct Process*) b;
+    return p1->arrival_time - p2->arrival_time;
+}
+
 void calculate_rrs(struct Process p[], int n, int quantum) {
+    // sort by arrival time
+    qsort(p, n, sizeof(p[0]), compareArrival);
+
+    Queue q;
+    initQueue(&q); // set default values
+
     int current_time = 0;
     int completed = 0;
+    int next = 0;
 
     while (completed < n) {
-        bool done_something = false;
+        
+        // as long as there is something to process, keep processing
+        while(!isEmpty(&q)){
+            int i = dequeue(&q);
 
-        for (int i = 0; i < n; i++) {
-            if (p[i].arrival_time <= current_time && p[i].remaining_time > 0) {
-                done_something = true;
+            if(!p[i].started){
+                p[i].response_time = current_time - p[i].arrival_time;
+                p[i].started = true;
+            }
 
-                if (!p[i].started) {
-                    p[i].response_time = current_time - p[i].arrival_time;
-                    p[i].started = true;
-                }
+            int processing_time = min(p[i].remaining_time, quantum);
+            
+            p[i].remaining_time -= processing_time;
+            current_time += processing_time;
+            
+            // we prioritize the unprocesseed processes before adding the one that just finished
+            while (next < n && p[next].arrival_time <= current_time){
+                enqueue(&q, next);
+                next++;
+            }
+            
+            // if the process didn't finish yet add it back to the queue 
+            if (p[i].remaining_time > 0){
+                enqueue(&q, i);
+            }
 
-                if (p[i].remaining_time > quantum) {
-                    current_time += quantum;
-                    p[i].remaining_time -= quantum;
-                } else {
-                    current_time += p[i].remaining_time;
-                    p[i].remaining_time = 0;
-                    p[i].finish_time = current_time;
-                    completed++;
-
-                    p[i].turnaround_time = p[i].finish_time - p[i].arrival_time;
-                }
+            // if process is finished
+            else{
+                p[i].finish_time = current_time;
+                p[i].turnaround_time = p[i].finish_time - p[i].arrival_time;
+                completed++;
             }
         }
 
-        if (!done_something) {
-            current_time++;
+        // we reach here, if the cpu is idle
+        // so we update the current time to the next process arrival time, so that the cpu can continue processing
+        current_time = p[next].arrival_time;
+
+        while (next < n && p[next].arrival_time <= current_time){
+            enqueue(&q, next);
+            next++;
         }
     }
 }
@@ -56,6 +88,8 @@ int main() {
         {2, 1, 3, 3, 0, 0, 0, false},
         {3, 2, 8, 8, 0, 0, 0, false}
     };
+
+    
 
     calculate_rrs(p, n, quantum);
 
