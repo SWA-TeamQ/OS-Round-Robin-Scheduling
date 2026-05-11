@@ -1,18 +1,19 @@
+#include <stdio.h>
 #include "queue.h"
 
-void initQueue(Queue* q){
+void initQueue(Queue* q) {
     q->front = 0;
     q->rear = -1;
     q->count = 0;
 }
 
-bool isEmpty(Queue* q){
+bool isEmpty(Queue* q) {
     return q->count == 0;
 }
 
-void enqueue(Queue* q, int process_index){
-    if(q->count >= MAX_PROCESSES){
-        printf("Queue is full");
+void enqueue(Queue* q, int process_index) {
+    if (q->count >= MAX_PROCESSES) {
+        printf("Error: Queue Overflow\n");
         return;
     }
     q->rear = (q->rear + 1) % MAX_PROCESSES;
@@ -20,10 +21,8 @@ void enqueue(Queue* q, int process_index){
     q->count++;
 }
 
-
-int dequeue(Queue* q){
-    if(isEmpty(q)) return -1;
-
+int dequeue(Queue* q) {
+    if (isEmpty(q)) return -1;
     int process_index = q->items[q->front];
     q->front = (q->front + 1) % MAX_PROCESSES;
     q->count--;
